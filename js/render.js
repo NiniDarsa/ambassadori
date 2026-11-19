@@ -1,76 +1,40 @@
-async function loadCampaign() {
-  const response = await fetch("./welcome-bonus-assets/public/campaign.json");
-  const data = await response.json();
+import { getImagePath, highlightLastWords } from "./utils.js";
 
-  renderCampaign(data);
-  startCountdown(data.endsAt, data.ui.countdown);
-}
-
-loadCampaign();
-
-//Reusable functions
-function getImagePath(path) {
-  return `./welcome-bonus-assets/public${path}`;
-}
-
-function highlightLastWords(text, count = 2) {
-  const words = text.split(" ");
-  const highlighted = words.splice(-count, count);
-
-  return `${words.join(" ")} <span class="pinkText">${highlighted.join(" ")}</span>`;
-}
-
-//Whole page(combine whole Part)
-function renderCampaign(data) {
-  const container = document.querySelector("#campaign");
-
-  container.innerHTML = `
-    <div class="container">
-            ${renderHero(data.hero)}
-            ${renderSummary(data.summary)}
-            ${renderRegister(data.register, data.ui)}
-            ${renderDeposit(data.deposit, data.ui)}
-            ${renderMissions(data.missions, data.ui)}
-            ${renderRules(data.rules, data.ui.rules)}
-        </div>
-    `;
-}
-
-//Hero
+// Hero
 function renderHero(hero) {
-  return `
-        <section class="hero">
-            <img src="${getImagePath(hero.image)}" alt="${hero.title}">
+  const heroContainer = document.querySelector("#hero");
+  heroContainer.innerHTML = `
+        <img src="${getImagePath(hero.image)}" alt="${hero.title}">
             <div class="heroTextContainer">
             <h1>${highlightLastWords(hero.title)}</h1>
             <p>${hero.subtitle}</p>
             </div>
-        </section>
-    `;
+  `;
 }
 
 //Summary
 function renderSummary(summary) {
-  return `
-        <section class="summary">
-            ${summary
-              .map(
-                (item) => `
+  const summaryContainer = document.querySelector("#summary");
+  summaryContainer.innerHTML = `
+     ${summary
+       .map(
+         (item) => `
                 <div class="summary-card ${item.highlighted ? "highlighted" : ""}">
                     <h2 class="gradient-text">${item.value}</h2>
                     <p>${item.label}</p>
                 </div>
             `,
-              )
-              .join("")}
-        </section>
-    `;
+       )
+       .join("")}
+
+`;
 }
 
 //Register
 function renderRegister(register, ui) {
-  return `
-    <section class="register">
+  const registerContainer = document.querySelector("#register");
+
+  registerContainer.innerHTML = `
       <h2>${ui.sections.register}${register.title}</h2>
 
       <div class="register-container">
@@ -94,16 +58,16 @@ function renderRegister(register, ui) {
           <button class="register-button">${register.button}</button>
         </div>
       </div>
-    </section>
   `;
 }
 
 //Deposit
 function renderDeposit(deposit, ui) {
   const labels = ui.deposit;
-  return `
-    <section class="deposit">
-      <h2>${ui.sections.deposit} ${deposit.title}</h2>
+
+  const depositContainer = document.querySelector("#deposit");
+  depositContainer.innerHTML = `
+  <h2>${ui.sections.deposit} ${deposit.title}</h2>
 
       <div class="deposit-container">
         <p class="deposit-description">${deposit.text}</p>
@@ -154,72 +118,18 @@ function renderDeposit(deposit, ui) {
            .join("")}
         </div>
       </div>
-    </section>
   `;
 }
 
-//Missions
-function startCountdown(endsAt, labels) {
-  const countdown = document.querySelector(".countdown");
-  const numbers = countdown.querySelector(".countdown-numbers");
-  const status = countdown.querySelector(".countdown-status");
-
-  let interval;
-
-  function updateCountdown() {
-    const difference = new Date(endsAt).getTime() - Date.now();
-
-    if (difference <= 0) {
-      numbers.textContent = "00 : 00 : 00 : 00";
-      status.textContent = labels.finished;
-      clearInterval(interval);
-      return;
-    }
-
-    const totalSeconds = Math.floor(difference / 1000);
-
-    const days = Math.floor(totalSeconds / 86400);
-    const hours = Math.floor((totalSeconds % 86400) / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    const values = [
-      { value: days, label: labels.days },
-      { value: hours, label: labels.hours },
-      { value: minutes, label: labels.minutes },
-      { value: seconds, label: labels.seconds },
-    ];
-
-    numbers.innerHTML = values
-      .map(
-        (item, index) => `
-          <div class="countdown-item">
-            <div>
-              ${String(item.value).padStart(2, "0")}
-              <span>${item.label}</span>
-            </div>
-          </div>
-
-          ${index < values.length - 1 ? '<span class="countdown-separator">:</span>' : ""}
-        `,
-      )
-      .join("");
-
-    status.textContent = "";
-  }
-
-  updateCountdown();
-  interval = setInterval(updateCountdown, 1000);
-}
-
+// Missions
 function renderMissions(missions, ui) {
   const labels = ui.missions;
   const maxAmount = Math.max(...missions.milestones.map((m) => m.amount));
   const currentProgress = missions.progress.current;
   const progressPercent = Math.min((currentProgress / maxAmount) * 100, 100);
 
-  return `
-    <section class="missions">
+  const missionsContainer = document.querySelector("#missions");
+  missionsContainer.innerHTML = `
       <h2>
         ${ui.sections.missions}
         <span class="desktop-text">${missions.title}</span>
@@ -319,15 +229,14 @@ function renderMissions(missions, ui) {
           <span class="mobile-text">${labels.mobileButton}</span>
         </button>
       </div>
-    </section>
   `;
 }
 
 // Rules
 function renderRules(rules, labels) {
-  return `
-    <section class="rules">
-      <h2 class="rules-heading">${labels.title}</h2>
+  const rulesContainer = document.querySelector("#rules");
+  rulesContainer.innerHTML = `
+   <h2 class="rules-heading">${labels.title}</h2>
 
       <div class="rules-list">
         ${rules
@@ -362,6 +271,71 @@ function renderRules(rules, labels) {
           )
           .join("")}
       </div>
-    </section>
   `;
+}
+
+// Countdown
+export function startCountdown(endsAt, labels) {
+  const countdown = document.querySelector(".countdown");
+  const numbers = countdown.querySelector(".countdown-numbers");
+  const status = countdown.querySelector(".countdown-status");
+
+  let interval;
+
+  function updateCountdown() {
+    const difference = new Date(endsAt).getTime() - Date.now();
+
+    if (difference <= 0) {
+      numbers.textContent = "00 : 00 : 00 : 00";
+      status.textContent = labels.finished;
+      clearInterval(interval);
+      return;
+    }
+
+    const totalSeconds = Math.floor(difference / 1000);
+
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const values = [
+      { value: days, label: labels.days },
+      { value: hours, label: labels.hours },
+      { value: minutes, label: labels.minutes },
+      { value: seconds, label: labels.seconds },
+    ];
+
+    numbers.innerHTML = values
+      .map(
+        (item, index) => `
+          <div class="countdown-item">
+            <div>
+              ${String(item.value).padStart(2, "0")}
+              <span>${item.label}</span>
+            </div>
+          </div>
+
+          ${index < values.length - 1 ? '<span class="countdown-separator">:</span>' : ""}
+        `,
+      )
+      .join("");
+
+    status.textContent = "";
+  }
+
+  updateCountdown();
+  interval = setInterval(updateCountdown, 1000);
+}
+
+//Whole page (renders everything)
+export function renderCampaign(data) {
+  const { hero, summary, register, deposit, missions, rules, ui } = data;
+
+  renderHero(hero);
+  renderSummary(summary);
+  renderRegister(register, ui);
+  renderDeposit(deposit, ui);
+  renderMissions(missions, ui);
+  renderRules(rules, data.ui.rules);
 }
