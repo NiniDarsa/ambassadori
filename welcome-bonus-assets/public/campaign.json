@@ -57,5 +57,41 @@
     { "title": "დაწყება/დამთავრება", "body": "აქცია მოქმედებს 1 დეკემბრიდან 31 დეკემბრამდე." },
     { "title": "აქციის პირობები", "body": "ფრისპინები ირიცხება ახალ მოთამაშეებზე." },
     { "title": "წესები და პირობები", "body": "სრული წესები იხილეთ საიტზე." }
-  ]
+  ],
+
+  "ui": {
+  "sections": {
+    "register": "1.",
+    "deposit": "2.",
+    "missions": "3."
+  },
+  "countdown": {
+    "title": "აქციის დასრულებამდე",
+    "finished": "აქცია დასრულდა",
+    "days": "დღე",
+    "hours": "საათი",
+    "minutes": "წუთი",
+    "seconds": "წამი"
+  },
+  "deposit": {
+    "tierDeposit": "დეპოზიტი",
+    "tierReward": "შენი საჩუქარი",
+    "currency": "₾",
+    "openEnded": "და მეტი",
+    "freespinSuffix": "FS",
+    "rewardType": "Freespin"
+  },
+  "missions": {
+    "mobileTitle": "შენი მისია",
+    "progressLabel": "პროგრესი",
+    "rewardLabel": "საჩუქარი",
+    "closeButton": "დახურვა",
+    "mobileButton": "სხვა სლოტები"
+  },
+  "rules": {
+    "title": "წესები და პირობები"
+  },
+  "rewardType": "Freespin"
+}
+  
 }

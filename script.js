@@ -2,18 +2,8 @@ async function loadCampaign() {
   const response = await fetch("./welcome-bonus-assets/public/campaign.json");
   const data = await response.json();
 
-  document.documentElement.style.setProperty(
-    "--bg-desktop",
-    `url("./welcome-bonus-assets/public${data.background.imageDesktop}")`,
-  );
-
-  document.documentElement.style.setProperty(
-    "--bg-mobile",
-    `url("./welcome-bonus-assets/public${data.background.imageMobile}")`,
-  );
-
   renderCampaign(data);
-  startCountdown(data.endsAt);
+  startCountdown(data.endsAt, data.ui.countdown);
 }
 
 loadCampaign();
@@ -38,19 +28,19 @@ function renderCampaign(data) {
     <div class="container">
             ${renderHero(data.hero)}
             ${renderSummary(data.summary)}
-            ${renderRegister(data.register)}
-            ${renderDeposit(data.deposit)}
-            ${renderMissions(data.missions, data.endsAt)}
-            ${renderRules(data.rules)}
+            ${renderRegister(data.register, data.ui)}
+            ${renderDeposit(data.deposit, data.ui)}
+            ${renderMissions(data.missions, data.ui)}
+            ${renderRules(data.rules, data.ui.rules)}
         </div>
     `;
 }
 
-//Hero Part
+//Hero
 function renderHero(hero) {
   return `
         <section class="hero">
-            <img src="${getImagePath(hero.image)}" alt="Hero image">
+            <img src="${getImagePath(hero.image)}" alt="${hero.title}">
             <div class="heroTextContainer">
             <h1>${highlightLastWords(hero.title)}</h1>
             <p>${hero.subtitle}</p>
@@ -77,11 +67,11 @@ function renderSummary(summary) {
     `;
 }
 
-//Registration
-function renderRegister(register) {
+//Register
+function renderRegister(register, ui) {
   return `
     <section class="register">
-      <h2>1. ${register.title}</h2>
+      <h2>${ui.sections.register}${register.title}</h2>
 
       <div class="register-container">
         <div class="register-image">
@@ -90,15 +80,13 @@ function renderRegister(register) {
 
         <div class="register-content">
        
-        <p class="register-description">
-                 ${register.text.replace("AMBASSADORIBET-ზე", "<br>AMBASSADORIBET-ზე")}
-        </p>
+        <p class="register-description"> ${register.text}</p>
 
           <div class="register-reward">
             <span class="reward-amount gradient-text">${register.freespins}</span>
 
             <div class="reward-details">
-              <span class="reward-type">freespin</span>
+              <span class="reward-type">${ui.rewardType}</span>
               <span class="reward-game">${register.game}</span>
             </div>
           </div>
@@ -111,10 +99,11 @@ function renderRegister(register) {
 }
 
 //Deposit
-function renderDeposit(deposit) {
+function renderDeposit(deposit, ui) {
+  const labels = ui.deposit;
   return `
     <section class="deposit">
-      <h2>2. ${deposit.title}</h2>
+      <h2>${ui.sections.deposit} ${deposit.title}</h2>
 
       <div class="deposit-container">
         <p class="deposit-description">${deposit.text}</p>
@@ -124,7 +113,7 @@ function renderDeposit(deposit) {
             <span class="deposit-amount gradient-text">${deposit.freespins}</span>
 
             <div class="deposit-details">
-              <span class="deposit-type">freespin</span>
+              <span class="deposit-type">${ui.rewardType}</span>
               <span class="deposit-game">${deposit.game}</span>
             </div>
           </div>
@@ -139,19 +128,25 @@ function renderDeposit(deposit) {
 
         <div class="tiers">
           <div class="tier-row tier-header">
-            <span>დეპოზიტი</span>
-            <span>შენი საჩუქარი</span>
+            <span>${labels.tierDeposit}</span>
+            <span>${labels.tierReward}</span>
           </div>
 
          ${deposit.tiers
            .map(
              (tier, index) => `
              <div class="tier-row">
-              <span>${tier.to ? `${tier.from} - ${tier.to} ₾` : `${tier.from} და მეტი`}</span>
+               <span>
+                    ${
+                      tier.to !== null
+                        ? `${tier.from} - ${tier.to} ${labels.currency}`
+                        : `${tier.from} ${labels.openEnded}`
+                    }
+               </span>
 
               <span>
                 <span class="${index === deposit.tiers.length - 1 ? "gradient-text" : ""}">
-                 ${tier.freespins} FS
+                 ${tier.freespins} ${labels.freespinSuffix}
                 </span>
               </span>
           </div> `,
@@ -164,19 +159,19 @@ function renderDeposit(deposit) {
 }
 
 //Missions
-
-function startCountdown(endsAt) {
+function startCountdown(endsAt, labels) {
   const countdown = document.querySelector(".countdown");
   const numbers = countdown.querySelector(".countdown-numbers");
   const status = countdown.querySelector(".countdown-status");
 
-  const interval = setInterval(() => {
+  let interval;
+
+  function updateCountdown() {
     const difference = new Date(endsAt).getTime() - Date.now();
 
     if (difference <= 0) {
       numbers.textContent = "00 : 00 : 00 : 00";
-      status.textContent = "აქცია დასრულდა";
-
+      status.textContent = labels.finished;
       clearInterval(interval);
       return;
     }
@@ -188,140 +183,182 @@ function startCountdown(endsAt) {
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
-    numbers.innerHTML = `
-  <div class="countdown-item">
-    <div>${String(days).padStart(2, "0")}<span>დღე</span></div>
-  </div>
-  <span class="countdown-separator">:</span>
+    const values = [
+      { value: days, label: labels.days },
+      { value: hours, label: labels.hours },
+      { value: minutes, label: labels.minutes },
+      { value: seconds, label: labels.seconds },
+    ];
 
-  <div class="countdown-item">
-    <div>${String(hours).padStart(2, "0")}<span>საათი</span></div>
-  </div>
-  <span class="countdown-separator">:</span>
+    numbers.innerHTML = values
+      .map(
+        (item, index) => `
+          <div class="countdown-item">
+            <div>
+              ${String(item.value).padStart(2, "0")}
+              <span>${item.label}</span>
+            </div>
+          </div>
 
-  <div class="countdown-item">
-    <div>${String(minutes).padStart(2, "0")}<span>წუთი</span></div>
-  </div>
-  <span class="countdown-separator">:</span>
-
-  <div class="countdown-item">
-    <div>${String(seconds).padStart(2, "0")}<span>წამი</span></div>
-  </div>
-`;
+          ${index < values.length - 1 ? '<span class="countdown-separator">:</span>' : ""}
+        `,
+      )
+      .join("");
 
     status.textContent = "";
-  }, 1000);
+  }
+
+  updateCountdown();
+  interval = setInterval(updateCountdown, 1000);
 }
 
-function renderMissions(missions, endsAt) {
-  const maxAmount = Math.max(...missions.milestones.map((m) => m.amount), 1100);
+function renderMissions(missions, ui) {
+  const labels = ui.missions;
+  const maxAmount = Math.max(...missions.milestones.map((m) => m.amount));
   const currentProgress = missions.progress.current;
-  const progressPercent = (currentProgress / maxAmount) * 100;
+  const progressPercent = Math.min((currentProgress / maxAmount) * 100, 100);
 
   return `
-        <section class="missions">
-            <h2>3. ${missions.title}</h2>
+    <section class="missions">
+      <h2>
+        ${ui.sections.missions}
+        <span class="desktop-text">${missions.title}</span>
+        <span class="mobile-text">${labels.mobileTitle}</span>
+      </h2>
 
-            <div class="missions-container">
-             <div class="missions-description">${highlightLastWords(missions.text)}</div>
-              
-             <div class="missions-countdown">
-                <span class="countdown-title">აქციის დასრულებამდე</span>
-                <div class="countdown">
-                  <div class="countdown-numbers"></div>   
-                </div>
-                <p class="countdown-status"></p>    
-             </div>
+      <div class="missions-container">
+        <div class="missions-description">${highlightLastWords(missions.text)}</div>
 
-             <div class="mission-progress-wrapper">
-                <div class="progress-row-top">
-                    <span class="progress-label-title">პროგრესი</span>
-                    <div class="milestones-top-scale">
-                        ${missions.milestones
-                          .map((item) => {
-                            const posPercent = (item.amount / maxAmount) * 100;
-                            return `<div class="scale-marker" style="left: ${posPercent}%">
-                                    <span class="marker-amount">${item.amount}${missions.progress.currency}</span>
-                                  </div>`;
-                          })
-                          .join("")}
+        <div class="missions-countdown">
+          <span class="countdown-title">${ui.countdown.title}</span>
+          <div class="countdown">
+            <div class="countdown-numbers"></div>
+            <p class="countdown-status"></p>
+          </div>
+        </div>
+
+        <div class="mission-progress-wrapper">
+          <div class="progress-row-top">
+            <span class="progress-label-title">${labels.progressLabel}</span>
+
+            <div class="milestones-top-scale">
+              ${missions.milestones
+                .map((item) => {
+                  const posPercent = (item.amount / maxAmount) * 100;
+
+                  return `
+                    <div class="scale-marker" style="left: ${posPercent}%">
+                      <span class="marker-amount">${item.amount}${missions.progress.currency}</span>
                     </div>
-                </div>
+                  `;
+                })
+                .join("")}
+            </div>
+          </div>
 
-                <div class="custom-progress-bar">
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width: ${progressPercent}%"></div>
-                    </div>
-                    <div class="progress-thumb" style="left: ${progressPercent}%">
-                        <span>+${currentProgress}${missions.progress.currency}</span>
-                    </div>
-                </div>
-
-                <div class="progress-row-bottom">
-                    <span class="progress-label-title">საჩუქარი</span>
-                    <div class="milestones-bottom-rewards">
-                        ${missions.milestones
-                          .map((item) => {
-                            const posPercent = (item.amount / maxAmount) * 100;
-                            return `<div class="reward-marker" style="left: ${posPercent}%">
-                                    <span class="reward-value gradient-text">${item.reward} <img src="${getImagePath(item.rewardIcon)}" alt="Reward"></span>
-                                  </div>`;
-                          })
-                          .join("")}
-                    </div>
-                </div>
-             </div>
-
-
-
-            <div class="slots">
-               ${missions.slots
-                 .map(
-                   (slot) => `
-                  <div class="slot-card">
-                      <img src="${getImagePath(slot.image)}" alt="${slot.name}">
-                      <span class="slot-title">${slot.name}</span>
-                  </div>
-                 `,
-                 )
-                 .join("")}
+          <div class="custom-progress-bar">
+            <div class="progress-track">
+              <div class="progress-fill" style="width: ${progressPercent}%"></div>
             </div>
 
-            <button class="missions-button" 
-            onclick="const container = this.parentElement;
-                     container.classList.toggle('active');
-                     this.textContent = container.classList.contains('active') ? 'დახურვა' : '${missions.button}';">
-          ${missions.button}
-          </button>
-
+            <div class="progress-thumb" style="left: ${progressPercent}%">
+              <span>+${currentProgress}${missions.progress.currency}</span>
             </div>
-        </section>
-    `;
+          </div>
+
+          <div class="progress-row-bottom">
+            <span class="progress-label-title">${labels.rewardLabel}</span>
+
+            <div class="milestones-bottom-rewards">
+              ${missions.milestones
+                .map((item) => {
+                  const posPercent = (item.amount / maxAmount) * 100;
+
+                  return `
+                    <div class="reward-marker" style="left: ${posPercent}%">
+                      <span class="reward-value gradient-text">
+                        ${item.reward}
+                        <img src="${getImagePath(item.rewardIcon)}" alt="">
+                      </span>
+                    </div>
+                  `;
+                })
+                .join("")}
+            </div>
+          </div>
+        </div>
+
+        <div class="slots">
+          ${missions.slots
+            .map(
+              (slot) => `
+                <div class="slot-card">
+                  <img src="${getImagePath(slot.image)}" alt="${slot.name}">
+                  <span class="slot-title">${slot.name}</span>
+                </div>
+              `,
+            )
+            .join("")}
+        </div>
+
+        <button
+          class="missions-button"
+          onclick="
+            const container = this.parentElement;
+            container.classList.toggle('active');
+            const isOpen = container.classList.contains('active');
+
+            this.querySelector('.desktop-text').textContent =
+              isOpen ? '${labels.closeButton}' : '${missions.button}';
+
+            this.querySelector('.mobile-text').textContent =
+              isOpen ? '${labels.closeButton}' : '${labels.mobileButton}';
+          "
+        >
+          <span class="desktop-text">${missions.button}</span>
+          <span class="mobile-text">${labels.mobileButton}</span>
+        </button>
+      </div>
+    </section>
+  `;
 }
 
-//Rules
-function renderRules(rules) {
+// Rules
+function renderRules(rules, labels) {
   return `
     <section class="rules">
-      <h2 class="rules-heading">წესები და პირობები</h2>
+      <h2 class="rules-heading">${labels.title}</h2>
+
       <div class="rules-list">
         ${rules
           .map(
             (rule) => `
-            <div class="rule-item">
-              <div class="rule-header" onclick="this.parentElement.classList.toggle('active')">
-                <h3>${rule.title}</h3>
-                <svg class="rule-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </div>
-              <div class="rule-body">
-                <div class="rule-body-inner">
-                  <p>${rule.body}</p>
+              <div class="rule-item">
+                <div class="rule-header" onclick="this.parentElement.classList.toggle('active')">
+                  <h3>${rule.title}</h3>
+
+                  <svg
+                    class="rule-chevron"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+
+                <div class="rule-body">
+                  <div class="rule-body-inner">
+                    <p>${rule.body}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          `,
+            `,
           )
           .join("")}
       </div>
