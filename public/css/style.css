@@ -819,6 +819,15 @@ body {
     .progress-track{
         height: 12px;
     }
+    .slot-card {
+       margin:0;
+    }
+    .slots {
+       justify-content: space-evenly;
+        gap: 0.5rem;
+        padding: 0.5rem
+    };
+
 }
 
 /***************Rules************/
