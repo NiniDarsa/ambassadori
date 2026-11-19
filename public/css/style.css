@@ -67,7 +67,7 @@ body {
 body {
     font-family: "RegularFont", sans-serif;
     min-height: 100vh;
-    background-image: url("../welcome-bonus-assets/public/images/full_desktop.png");
+    background-image: url("../images/full_desktop.png");
     background-position: top center;
     background-repeat: no-repeat;
     background-size: 100% auto;
@@ -78,7 +78,7 @@ body {
 /*mobile*/
 @media (max-width: 390px) {
     body {
-        background-image: url("../welcome-bonus-assets/public/images/full_mobile.png");
+        background-image: url("../images/full_mobile.png");
 
     }
 }
