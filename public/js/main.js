@@ -2,7 +2,7 @@ import { startCountdown, renderCampaign } from "./render.js";
 
 async function loadCampaign() {
   try {
-    const response = await fetch("./welcome-bonus-assets/public/campaign.json");
+    const response = await fetch("public/campaign.json");
 
     if (!response.ok) {
       throw new Error(`Failed to load campaign: ${response.status}`);

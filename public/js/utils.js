@@ -1,5 +1,5 @@
 export function getImagePath(path) {
-  return `./welcome-bonus-assets/public${path}`;
+  return `public${path}`;
 }
 
 export function highlightLastWords(text, count = 2) {
