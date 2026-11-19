@@ -750,7 +750,7 @@ body {
 .slot-card {
     transition: all 0.5s ease;
     flex-shrink: 0;
-
+    margin-inline: 0.5rem;
 }
 
 .slot-card img {
