@@ -286,7 +286,7 @@ export function startCountdown(endsAt, labels) {
     const difference = new Date(endsAt).getTime() - Date.now();
 
     if (difference <= 0) {
-      numbers.textContent = "00 : 00 : 00 : 00";
+      numbers.textContent = "";
       status.textContent = labels.finished;
       clearInterval(interval);
       return;

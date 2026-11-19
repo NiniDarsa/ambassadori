@@ -554,6 +554,7 @@ body {
 
 .countdown-status {
     font-size: clamp(11px, 1.1vw, 14px);
+    text-align: center;
 }
 
 /* Progress */
